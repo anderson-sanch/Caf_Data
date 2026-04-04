@@ -1,10 +1,14 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateSaleDto } from './dto/Create-sale.dto';
+import { InventoryService } from '../inventory/inventory.service';
 
 @Injectable()
 export class SalesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private invenrotyService: InventoryService
+  ) {}
 
   async create(dto: CreateSaleDto) {
     return await this.prisma.$transaction(async (tx) => {
@@ -18,7 +22,33 @@ export class SalesService {
             subtotal: number
         }[] = [];
 
+        const productIds = dto.items.map(item => item.productId);
+
+        const products = await tx.products.findMany({
+          where: {
+            id: {
+              in: productIds,
+            },
+          },
+          select: {
+            id: true,
+            name: true,
+          },
+        });
+
+        const productMap = new Map(products.map(p => [p.id, p]))
+
       for (const item of dto.items) {
+
+        const product = productMap.get(item.productId);
+
+        // validamos stock
+        const stock = await this.invenrotyService.getStock(item.productId, tx);
+
+        if(stock < item.quantity){
+          throw new BadRequestException(`Stock insuficiente para el producto ${product?.name || 'producto'}. Disponible: ${stock}`)
+        }
+
 
         // 🔹 1. Obtener precio actual
         const priceRecord = await tx.product_prices.findFirst({
