@@ -82,4 +82,73 @@ export class SalesService {
       return sale;
     });
   }
+
+  async findAll() {
+    return await this.prisma.sales.findMany({
+      include: {
+        clients: true,
+        sale_items: {
+          include: {
+            products: true,
+          }
+        }
+      },
+      orderBy: {
+        created_at: 'desc'
+      }
+    })
+  }
+
+  async findOne(id: string) {
+    console.log(id);
+    
+  const sale = await this.prisma.sales.findUnique({
+    where: { id },
+    include: {
+      clients: true,
+      sale_items: {
+        include: {
+          products: true,
+        },
+      },
+    },
+  });
+
+  if (!sale) {
+    throw new BadRequestException('Venta no encontrada');
+  }
+
+  return sale;
+  }
+
+  async cancel(id: string){
+    return this.prisma.$transaction(async (tx) => {
+      const sale = await tx.sales.findUnique({
+        where: { id },
+        include: {
+          sale_items: true
+        }
+      })
+      if(!sale){
+        throw new BadRequestException('Venta no encontrada');
+      }
+
+      // devolvemos el inventario
+      for(const item of sale.sale_items){
+        await tx.inventory_movements.create({
+          data: {
+            product_id: item.product_id,
+            type: 'IN',
+            quantity: item.quantity,
+            reason: 'Cancelacion de Venta'
+          },
+        });
+      }
+      // cambiamos estado de la venta
+      return tx.sales.update({
+        where: { id },
+        data: { status: 'canceled' }
+      })
+    })
+  }
 }

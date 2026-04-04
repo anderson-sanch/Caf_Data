@@ -4,11 +4,11 @@ import { payment_method } from '@prisma/client';
 
 class SaleItemDto {
   @IsUUID()
-  productId: string;
+  productId!: string;
 
   @IsInt()
   @Min(1)
-  quantity: number;
+  quantity!: number;
 }
 
 export class CreateSaleDto {
@@ -22,5 +22,5 @@ export class CreateSaleDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => SaleItemDto)
-  items: SaleItemDto[];
+  items!: SaleItemDto[];
 }
