@@ -53,17 +53,19 @@ model categories {
 }
 
 model clients {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name       String?   @db.VarChar(100)
-  email      String?   @db.VarChar(150)
-  phone      String?   @db.VarChar(20)
-  document   String?   @db.VarChar(50)
-  address    String?
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_at DateTime? @db.Timestamp(6)
-  deleted_at DateTime? @db.Timestamp(6)
-  sales      sales[]
+  id            String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name          String?             @db.VarChar(100)
+  email         String?             @db.VarChar(150)
+  phone         String?             @db.VarChar(20)
+  document      String?             @db.VarChar(50)
+  address       String?
+  created_at    DateTime?           @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?           @db.Timestamp(6)
+  deleted_at    DateTime?           @db.Timestamp(6)
+  document_type document_type_enum?
+  sales         sales[]
 
+  @@unique([document_type, document], map: "unique_document_type")
   @@index([document], map: "idx_clients_document")
   @@index([email], map: "idx_clients_email")
 }
@@ -250,6 +252,13 @@ enum cash_status {
 enum discount_type {
   percentage
   fixed
+}
+
+enum document_type_enum {
+  CC
+  CE
+  NIT
+  PASSPORT
 }
 
 enum invoice_status {

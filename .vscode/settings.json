@@ -1,7 +1,6 @@
-
 {
   "material-icon-theme.activeIconPack": "nest",
   "files.exclude": {
-    "**/src/generated/prisma": true
+    "**/backend/src/generated/prisma": true
   }
 }

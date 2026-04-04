@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import logo from  "../../imagenes/logo.png"
+import logo from  "../../imagenes/Logo.png"
 import { Link } from "react-router-dom";
 
 function Sidebar() {

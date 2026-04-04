@@ -1,8 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
-import { CreateClientDto } from './dto/update-client.dto';
-import { iif } from 'rxjs';
-import { UpdateClientDto } from './dto/create-client.dto';
+import { CreateClientDto } from './dto/create-client.dto';
+import { UpdateClientDto } from './dto/update-client.dto';
 
 @Injectable()
 export class ClientsService {
@@ -10,8 +9,25 @@ export class ClientsService {
 
     // crear
     async create(dto: CreateClientDto){
+        const { documentType, ...rest } = dto;
+
+        if(rest.document){
+            const existingClient = await this.prisma.clients.findFirst({
+                where:{
+                    document: rest.document,
+                },
+            });
+
+            if(existingClient){
+                throw new BadRequestException('El documento ya esta registrado para otro cliente')
+            }
+        }
+
         return this.prisma.clients.create({
-            data: dto,
+            data: {
+                ...rest,
+                document_type: documentType,
+            },
         });
     }
 
@@ -43,10 +59,25 @@ export class ClientsService {
     async update(id: string, dto: UpdateClientDto){
         await this.findOne(id) // valida existencia
 
+        const { documentType, ...rest } = dto;
+
+        if(rest.document){
+            const existingClient = await this.prisma.clients.findFirst({
+                where: {
+                    document: rest.document,
+                }
+            })
+
+            if(existingClient && existingClient.id !== id){
+                throw new BadRequestException('El documento ya esta registrado para otro cliente')
+            }
+        }
+
         return this.prisma.clients.update({
             where: { id },
             data: {
-                ...dto,
+                ...rest,
+                ...(documentType !== undefined ? { document_type: documentType } : {}),
                 updated_at: new Date()
             }
 

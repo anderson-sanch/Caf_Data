@@ -14,6 +14,10 @@ export class ProductsController {
     createCategory(@Body() dto:CreateCategoryDto){
         return this.producService.createCategory(dto)
     }
+    @Get('category')
+    findAllCategories(){
+        return this.producService.findAllCategories();
+    }
 
     @Post()
     createProduct(@Body() dto: CreateProductDto){
@@ -29,7 +33,7 @@ export class ProductsController {
 
     @Get()
     findAll(){
-        return this.producService.findAll();
+        return this.producService.findAllProducts();
     }
 
     //Actualizacion
