@@ -7,48 +7,65 @@ import { InventoryService } from '../inventory/inventory.service';
 export class SalesService {
   constructor(
     private prisma: PrismaService,
-    private invenrotyService: InventoryService
+    private invenrotyService: InventoryService,
   ) {}
 
   async create(dto: CreateSaleDto) {
+    if (!dto.items || dto.items.length === 0) {
+      throw new BadRequestException('La venta debe tener al menos un item');
+    }
+
     return await this.prisma.$transaction(async (tx) => {
+      const client = await tx.clients.findUnique({
+        where: { id: dto.clientId },
+      });
+
+      if (!client) {
+        throw new BadRequestException('Cliente no encontrado');
+      }
 
       let total = 0;
 
-        const itemsProcessed: {
-            product_id: string;
-            quantity: number;
-            price: number;
-            subtotal: number
-        }[] = [];
+      const itemsProcessed: {
+        product_id: string;
+        quantity: number;
+        price: number;
+        subtotal: number;
+      }[] = [];
 
-        const productIds = dto.items.map(item => item.productId);
+      const productIds = dto.items.map((item) => item.productId);
 
-        const products = await tx.products.findMany({
-          where: {
-            id: {
-              in: productIds,
-            },
+      const products = await tx.products.findMany({
+        where: {
+          id: {
+            in: productIds,
           },
-          select: {
-            id: true,
-            name: true,
-          },
-        });
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
 
-        const productMap = new Map(products.map(p => [p.id, p]))
+      const productMap = new Map(products.map((p) => [p.id, p]));
 
       for (const item of dto.items) {
-
         const product = productMap.get(item.productId);
+
+        if (!product) {
+          throw new BadRequestException(
+            `Producto con ID ${item.productId} no encontrado`,
+          );
+        }
 
         // validamos stock
         const stock = await this.invenrotyService.getStock(item.productId, tx);
 
-        if(stock < item.quantity){
-          throw new BadRequestException(`Stock insuficiente para el producto ${product?.name || 'producto'}. Disponible: ${stock}`)
+        if (stock < item.quantity) {
+          throw new BadRequestException(
+            `Stock insuficiente para el producto ${product?.name || 'producto'}. Disponible: ${stock}`,
+          );
         }
-
 
         // 🔹 1. Obtener precio actual
         const priceRecord = await tx.product_prices.findFirst({
@@ -89,7 +106,6 @@ export class SalesService {
 
       // 🔥 3. Crear items + inventario
       for (const item of itemsProcessed) {
-
         // detalle
         await tx.sale_items.create({
           data: {
@@ -102,7 +118,7 @@ export class SalesService {
         await tx.inventory_movements.create({
           data: {
             product_id: item.product_id,
-            type: 'OUT', 
+            type: 'OUT',
             quantity: item.quantity,
             reason: 'Venta',
           },
@@ -120,65 +136,65 @@ export class SalesService {
         sale_items: {
           include: {
             products: true,
-          }
-        }
+          },
+        },
       },
       orderBy: {
-        created_at: 'desc'
-      }
-    })
+        created_at: 'desc',
+      },
+    });
   }
 
   async findOne(id: string) {
     console.log(id);
-    
-  const sale = await this.prisma.sales.findUnique({
-    where: { id },
-    include: {
-      clients: true,
-      sale_items: {
-        include: {
-          products: true,
+
+    const sale = await this.prisma.sales.findUnique({
+      where: { id },
+      include: {
+        clients: true,
+        sale_items: {
+          include: {
+            products: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!sale) {
-    throw new BadRequestException('Venta no encontrada');
+    if (!sale) {
+      throw new BadRequestException('Venta no encontrada');
+    }
+
+    return sale;
   }
 
-  return sale;
-  }
-
-  async cancel(id: string){
+  async cancel(id: string) {
     return this.prisma.$transaction(async (tx) => {
       const sale = await tx.sales.findUnique({
         where: { id },
         include: {
-          sale_items: true
-        }
-      })
-      if(!sale){
+          sale_items: true,
+        },
+      });
+      if (!sale) {
         throw new BadRequestException('Venta no encontrada');
       }
 
       // devolvemos el inventario
-      for(const item of sale.sale_items){
+      for (const item of sale.sale_items) {
         await tx.inventory_movements.create({
           data: {
             product_id: item.product_id,
             type: 'IN',
             quantity: item.quantity,
-            reason: 'Cancelacion de Venta'
+            reason: 'Cancelacion de Venta',
           },
         });
       }
       // cambiamos estado de la venta
       return tx.sales.update({
         where: { id },
-        data: { status: 'canceled' }
-      })
-    })
+        data: { status: 'canceled' },
+      });
+    });
   }
 }
