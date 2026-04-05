@@ -7,22 +7,21 @@ import ReportesPage from "../pages/ReportesPage";
 import PersonalPage from "../pages/PersonalPage";
 import NotificacionesPage from "../pages/NotificacionesPage";
 import ConfiguracionPage from "../pages/ConfiguracionPage";
-
-
+import LoginPage from "../pages/LoginPage";
 
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/login" element={<LoginPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/inventario" element={<InventarioPage />} />
       <Route path="/clientes" element={<ClientesPage />} />
-      <Route path="/Ventas" element={<VentasPage/>} />
-      <Route path="/Reportes" element={<ReportesPage/>} />
-      <Route path="/Personal" element={<PersonalPage/>} />
-      <Route path="/Notificaciones" element={<NotificacionesPage/>} />
-      <Route path="/Configuracion" element={<ConfiguracionPage/>} />
-
+      <Route path="/ventas" element={<VentasPage />} />
+      <Route path="/reportes" element={<ReportesPage />} />
+      <Route path="/personal" element={<PersonalPage />} />
+      <Route path="/ventnotificaciones" element={<NotificacionesPage />} />
+      <Route path="/configuracion" element={<ConfiguracionPage />} />
     </Routes>
   );
 }
