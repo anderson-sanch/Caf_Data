@@ -1,4 +1,8 @@
 :root {
+  --bg: #f0e5e1;
+  --coffee: #4d3328;
+  --coffee-dark: #3f2a20;
+  --text: #281d18;
   --coffee-900: #2f1e17;
   --coffee-700: #6f4330;
   --coffee-500: #b97b4d;
@@ -7,6 +11,13 @@
   --glass: rgba(255, 255, 255, 0.12);
   --glass-border: rgba(255, 255, 255, 0.22);
   --overlay-dark: rgba(0, 0, 0, 0.45);
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg);
+  color: var(--text);
 }
 
 * {
@@ -852,6 +863,7 @@
 .shift-top {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 8px;
 }
 
@@ -870,13 +882,7 @@
 .shift-user strong {
   display: block;
   font-size: 1rem;
-  min-height: 140px;
   color: #3f2b21;
-}
-
-.shift-user span {
-  font-size: 0.82rem;
-  color: #8a7065;
 }
 
 .shift-status {
@@ -900,10 +906,10 @@
 }
 
 .shift-bottom {
-  margin-top: 12px;
+  margin-top: 16px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .shift-bottom div {
