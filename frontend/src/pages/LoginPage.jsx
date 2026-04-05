@@ -1,18 +1,45 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import fondoLogin from "../imagenes/imagen_Login_new.png";
-import logoEmpresa from "../imagenes/logo.png";
+import logoEmpresa from "../imagenes/Logo.png";
 
 export default function LoginPage() {
-  
-  const navigate = useNavigate(); 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleLogin = async () => {
+    setError(null);
+
+    try {
+      const res = await fetch("http://localhost:3000/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError( data.message)
+        return
+      }
+
+      localStorage.setItem("token", data.access_token);
+      navigate("/dashboard");
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    }
+  };
+
+  const navigate = useNavigate();
 
   return (
     <div className="login-page">
-      <img
-        src={fondoLogin}
-        alt="Fondo cafetería"
-        className="login-bg"
-      />
+      <img src={fondoLogin} alt="Fondo cafetería" className="login-bg" />
 
       <div className="login-overlay"></div>
 
@@ -33,12 +60,16 @@ export default function LoginPage() {
               className="login-input"
               type="email"
               placeholder="Correo electrónico"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
 
             <input
               className="login-input"
               type="password"
               placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
 
             <label className="login-remember">
@@ -50,12 +81,14 @@ export default function LoginPage() {
               ¿Olvidaste tu contraseña?
             </button>
 
-            <button type="button"
+            <button
+              type="button"
               className="login-submit"
-              onClick={() => navigate("/dashboard")}
+              onClick={handleLogin}
             >
               Entrar
             </button>
+            {error && <p className="error-message">{error}</p>}
           </form>
 
           <p className="login-footer">
