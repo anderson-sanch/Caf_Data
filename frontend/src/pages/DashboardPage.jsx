@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Layout from "../components/layout/Layout";
+import { CardkpiData } from "../components/ui/Cards/CardkpiData";
 
 function DashboardPage() {
   const [search, setSearch] = useState("");
@@ -13,29 +14,11 @@ function DashboardPage() {
       onSearchChange={setSearch}
     >
       <section className="inventory-kpi-grid dashboard-kpi-grid">
-        <article className="kpi-card">
-          <p>Ventas Hoy</p>
-          <h3>$2,450,000</h3>
-          <small className="up">+8.6%</small>
-        </article>
 
-        <article className="kpi-card">
-          <p>Órdenes</p>
-          <h3>84</h3>
-          <small className="up">+4.2%</small>
-        </article>
-
-        <article className="kpi-card">
-          <p>Productos</p>
-          <h3>182</h3>
-          <small className="down">-1.1%</small>
-        </article>
-
-        <article className="kpi-card">
-          <p>Clientes</p>
-          <h3>1,412</h3>
-          <small className="up">+2.0%</small>
-        </article>
+        <CardkpiData title={"Ventas hoy"} data={20000} price={true} className={"kpi-card"}/>
+        <CardkpiData title={"Ordemes"} data={48} className={"kpi-card"}/>
+        <CardkpiData title={"Productos"} data={182} className={"kpi-card"}/>
+        <CardkpiData title={"Clientes"} data={1412} className={"kpi-card"}/>
       </section>
 
       <section className="orders-card">
