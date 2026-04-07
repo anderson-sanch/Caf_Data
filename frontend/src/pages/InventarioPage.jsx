@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import Layout from "../components/layout/Layout";
+import { CardkpiData } from "../components/ui/Cards/CardkpiData";
 
 function InventarioPage() {
   const [search, setSearch] = useState("");
@@ -63,21 +64,10 @@ function InventarioPage() {
       </section>
 
       <section className="inventory-kpi-grid">
-        <article className="kpi-card inventory-kpi-card">
-          <div>
-            <p>Total productos</p>
-            <h3>95</h3>
-            <small className="up">+4.8%</small>
-          </div>
-        </article>
 
-        <article className="kpi-card inventory-kpi-card">
-          <div>
-            <p>Stock bajo</p>
-            <h3>3</h3>
-            <small className="down">3 productos críticos</small>
-          </div>
-        </article>
+        <CardkpiData title={"Total producto"} data={95} className={"kpi-card inventory-kpi-card"} />
+        <CardkpiData title={"Stock bajo"} data={3} className={"kpi-card inventory-kpi-card"} message={"3 productos criticos"} smallClassName={"down"}/>
+        <CardkpiData title={""} data={3} className={"kpi-card inventory-kpi-card"} message={"3 productos criticos"} smallClassName={"down"}/>
 
         <article className="kpi-card inventory-kpi-card">
           <div>

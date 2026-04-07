@@ -20,7 +20,7 @@ function AppRoutes() {
       <Route path="/ventas" element={<VentasPage />} />
       <Route path="/reportes" element={<ReportesPage />} />
       <Route path="/personal" element={<PersonalPage />} />
-      <Route path="/ventnotificaciones" element={<NotificacionesPage />} />
+      <Route path="/notificaciones" element={<NotificacionesPage />} />
       <Route path="/configuracion" element={<ConfiguracionPage />} />
     </Routes>
   );

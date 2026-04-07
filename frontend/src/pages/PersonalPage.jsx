@@ -5,21 +5,9 @@ function PersonalPage() {
   const [search, setSearch] = useState("");
 
   const empleados = [
-    {
-      nombre: "Juan Pérez",
-      rol: "Barista",
-      estado: "En turno",
-    },
-    {
-      nombre: "Laura Gómez",
-      rol: "Cajera",
-      estado: "En descanso",
-    },
-    {
-      nombre: "Carlos Ruiz",
-      rol: "Supervisor",
-      estado: "En turno",
-    },
+    { nombre: "Juan Pérez", rol: "Barista", estado: "En turno" },
+    { nombre: "Laura Gómez", rol: "Cajera", estado: "En descanso" },
+    { nombre: "Carlos Ruiz", rol: "Supervisor", estado: "En turno" },
   ];
 
   const filteredEmpleados = useMemo(() => {
@@ -76,36 +64,50 @@ function PersonalPage() {
         </article>
       </section>
 
-      <section className="staff-grid">
-        {filteredEmpleados.map((item) => (
-          <article className="staff-card" key={item.nombre}>
-            <div className="staff-header">
-              <div className="staff-avatar" />
-              <div>
-                <h4>{item.nombre}</h4>
-                <p>{item.rol}</p>
-              </div>
-            </div>
+      <section className="shift-section">
+        <h3>Empleados en turno</h3>
 
-            <span
-              className={`status ${
-                item.estado === "En descanso" ? "soldout" : "completed"
-              }`}
-            >
-              {item.estado}
-            </span>
+        <div className="shift-grid">
+          {filteredEmpleados.map((item) => {
+            const isDescanso = item.estado === "En descanso";
 
-            <div className="staff-actions">
-              <button type="button" className="toolbar-chip">
-                Finalizar turno
-              </button>
+            return (
+              <article
+                className={`shift-card ${
+                  isDescanso ? "shift-card-warning" : "shift-card-open"
+                }`}
+                key={item.nombre}
+              >
+                <div className="shift-top">
+                  <div className="shift-user">
+                    <div>
+                      <strong>{item.nombre}</strong>
+                      <span>{item.rol}</span>
+                    </div>
+                  </div>
 
-              <button type="button" className="toolbar-chip">
-                Reasignar
-              </button>
-            </div>
-          </article>
-        ))}
+                  <span
+                    className={`shift-status ${
+                      isDescanso ? "warning" : "success"
+                    }`}
+                  >
+                    {item.estado}
+                  </span>
+                </div>
+
+                <div className="shift-bottom">
+                  <button type="button" className="toolbar-chip">
+                    Finalizar turno
+                  </button>
+
+                  <button type="button" className="toolbar-chip">
+                    Reasignar
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       </section>
     </Layout>
   );
