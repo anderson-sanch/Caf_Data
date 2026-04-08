@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 
 function PersonalPage() {
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
 
   const empleados = [
     { nombre: "Juan Pérez", rol: "Barista", estado: "En turno" },
@@ -32,7 +34,11 @@ function PersonalPage() {
         />
 
         <div className="toolbar-right">
-          <button type="button" className="toolbar-main">
+          <button
+            type="button"
+            className="toolbar-main"
+            onClick={() => navigate("/personal/nuevo")}
+          >
             + Nuevo empleado
           </button>
         </div>

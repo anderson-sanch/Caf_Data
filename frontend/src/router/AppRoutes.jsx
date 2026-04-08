@@ -10,6 +10,7 @@ import NotificacionesPage from "../pages/NotificacionesPage";
 import ConfiguracionPage from "../pages/ConfiguracionPage";
 import LoginPage from "../pages/LoginPage";
 import LandingPage from "../pages/LandingPage";
+import CrearPersonalPage from "../pages/CrearPersonalPage"
 
 function AppRoutes() {
   return (
@@ -23,6 +24,7 @@ function AppRoutes() {
       <Route path="/ventas" element={<VentasPage />} />
       <Route path="/reportes" element={<ReportesPage />} />
       <Route path="/personal" element={<PersonalPage />} />
+      <Route path="/personal/nuevo" element={<CrearPersonalPage />} />
       <Route path="/notificaciones" element={<NotificacionesPage />} />
       <Route path="/landing" element={<LandingPage />} />
       <Route path="/configuracion" element={<ConfiguracionPage />} />

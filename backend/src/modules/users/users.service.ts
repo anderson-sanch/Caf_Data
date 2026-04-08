@@ -131,4 +131,12 @@ export class UsersService {
 
     return user;
   }
+
+  async findAll() {
+    return this.prisma.users.findMany({
+      orderBy: {
+        name: 'asc',
+      },
+    });
+  }
 }
