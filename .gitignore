@@ -25,6 +25,9 @@
 # Icon must end with two \r
 Icon
 
+# ia
+.codex
+
 
 # Thumbnails
 ._*
