@@ -1,8 +1,31 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 
 function ClientesPage() {
   const [search, setSearch] = useState("");
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("")
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const Clientes = async () => {
+      try{
+        const res = await fetch("http://localhost:3000/clients");
+        const data = await res.json();
+
+        setClients(data)
+      } catch(err){
+        setError('Error al obtener clientes')
+      } finally{
+        setLoading(false);
+      }
+    }
+
+    Clientes()
+  }, [])
+
 
   const clientes = [
     {
@@ -56,7 +79,11 @@ function ClientesPage() {
           <button type="button" className="toolbar-chip">
             Exportar
           </button>
-          <button type="button" className="toolbar-main">
+          <button
+            type="button"
+            className="toolbar-main"
+            onClick={() => navigate("/clientes/nuevo")}
+          >
             + Nuevo cliente
           </button>
         </div>
@@ -99,29 +126,34 @@ function ClientesPage() {
               <th>Nombre</th>
               <th>Contacto</th>
               <th>Estado</th>
-              <th>Registro</th>
-              <th>Tipo</th>
+              <th>email</th>
+              <th>Direccion</th>
               <th>Acciones</th>
             </tr>
           </thead>
 
           <tbody>
-            {filteredClientes.map((item) => (
-              <tr key={`${item.nombre}-${item.contacto}`}>
-                <td>{item.nombre}</td>
-                <td>{item.contacto}</td>
+            {loading && <p>Cargando...</p>}
+            {error && <p>{error}</p>}
+            {clients.map((item) => (
+              <tr key={item.id}>
+                <td>{item.name}</td>
+                <td>{item.phone}</td>
                 <td>
                   <span
                     className={`status ${
-                      item.estado === "Inactivo" ? "soldout" : "completed"
+                      item.deleted_at === "null" ? "soldout" : "completed"
                     }`}
                   >
-                    {item.estado}
+                    {item.deleted_at === "null" ? 'Inactivo' : 'Activo'}
                   </span>
                 </td>
-                <td>{item.registro}</td>
-                <td>{item.tipo}</td>
-                <td>Ver detalles</td>
+                <td>{item.email}</td>
+                <td>{item.address}</td>
+                <td>
+                  <button className="botton-action">Eliminar</button>
+                  <button className="botton-action">Editar</button>
+                  </td>
               </tr>
             ))}
           </tbody>

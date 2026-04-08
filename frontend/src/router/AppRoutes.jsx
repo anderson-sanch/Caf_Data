@@ -1,5 +1,6 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import ClientesPage from "../pages/ClientesPage";
+import CrearClientePage from "../pages/CrearClientePage";
 import DashboardPage from "../pages/DashboardPage";
 import InventarioPage from "../pages/InventarioPage";
 import VentasPage from "../pages/VentasPage";
@@ -13,11 +14,12 @@ import LandingPage from "../pages/LandingPage";
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      {/* <Route path="/" element={<LandingPage />} /> */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/inventario" element={<InventarioPage />} />
       <Route path="/clientes" element={<ClientesPage />} />
+      <Route path="/clientes/nuevo" element={<CrearClientePage />} />
       <Route path="/ventas" element={<VentasPage />} />
       <Route path="/reportes" element={<ReportesPage />} />
       <Route path="/personal" element={<PersonalPage />} />
