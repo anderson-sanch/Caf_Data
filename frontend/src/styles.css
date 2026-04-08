@@ -27,12 +27,7 @@ body {
   margin: 0;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: var(--text-main);
-  background: linear-gradient(
-    0deg,
-    #f9f6f4 0%,
-    #efe3db 50%,
-    #e4d1c5 100%
-  );
+  background: linear-gradient(0deg,#f9f6f4 0%,#efe3db 50%,#e4d1c5 100%);
 }
 /*Hace que width y height incluyan padding y border */
 * {
@@ -1291,7 +1286,7 @@ body {
   flex: 1;             
   justify-content: flex-end;
 
-.topbar-right input {
+.topbar-right-input {
   min-width: 250px;   
   max-width: 400px;  
   border: 1px solid #dbc8c0;
@@ -1311,177 +1306,5 @@ body {
       gap: 16px;
     }
 
-}
-
-.hero{
-  height: 80hv;
-  background-image: url("../src/imagenes/coffee\ cup\ aesthetic.webp");
-  background-size: cover;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 30px;
-  color: #fff;
-}
-.hero-overplay{
-  background:rgba(0, 0, 0, 0.5) ;
-  height:100% ;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding:60px;
-  color: #fff;
-}
-.hero h1{
-  font-size:48px;
-  margin-bottom:10px;
-}
-
-.hero p{
-  font-size:18px;
-  margin-bottom:20px ;
-}
-.menu{
-  padding: 60px 40px;
-  text-align: center;
-  background:#f5f1ea;
-}
-
-.menu h2{
-  font-size: 32px;
-  margin-bottom:20px;
-}
-
-.menu-container{
-  display: flex;
-  gap:30px;
-  justify-content: center;
-  flex-wrap:wrap;
-}
-.menu-section {
-  padding: 80px 40px;
-  text-align: center;
-  background: #f4f1ec;
-}
-
-.menu-section h2 {
-  font-size: 36px;
-  margin-bottom: 40px;
-}
-
-.menu-section span {
-  font-style: italic;
-}
-
-
-.card{
-  width:280px;
-  background: #fff;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow:0 10px 25px rgba(0, 0, 0, 0.1);
-  transition: 0.3s;
-}
-.card:hover{
-  transform: translateY(-10px);
-}
-
-.card img{
- width: 100%;
- height:200px;
- object-fit:cover ;
-}
-.card h3{
-  margin:15px 0 5px;
-}
-
-.card p{
-  color: #777;
-}
-.card button{
-  margin:15px;
-  padding:10px 20px;
-  border:none;
-  background: #3b2f2f;
-  color: #fff;
-  border-radius: 10px;
-  cursor: pointer;
-}
-.highlight {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 80px;
-  background: #fff;
-  gap: 40px;
-}
-
-.highlight-text {
-  max-width: 500px;
-}
-
-.highlight-text h2 {
-  font-size: 40px;
-  margin-bottom: 15px;
-}
-.highlight-text p {
-  font-size: 16px;
-  color: #555;
-  margin-bottom: 20px;
-}
-
-.highlight-text button {
-  padding: 12px 25px;
-  border: none;
-  border-radius: 25px;
-  background: #c89b6d;
-  color: white;
-  cursor: pointer;
-}
-
-.highlight-image img {
-  width: 400px;
-  border-radius: 20px;
-}
-
-
-.final-cta {
-  height: 70vh;
-  background-image: url("./imagenes/CAFE_TIENDA2.avif");
-  background-size: cover;
-  background-position: center;
-  position: relative;
-}
-
-
-.final-overlay {
-  background: rgba(0, 0, 0, 0.5);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  text-align: center;
-  padding: 20px;
-}
-
-.final-overlay h2 {
-  font-size: 40px;
-  margin-bottom: 15px;
-}
-
-.final-overlay p {
-  font-size: 18px;
-  margin-bottom: 20px;
-}
-
-.final-overlay button {
-  padding: 12px 30px;
-  border-radius: 25px;
-  border: none;
-  background: #c89b6d;
-  color: white;
-  cursor: pointer;
 }
 }

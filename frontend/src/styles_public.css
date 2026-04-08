@@ -1,0 +1,298 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: linear-gradient(0deg,#efe3db 50%,#e4d1c5 100%);  
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  z-index: 1000;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #3b2f2f;
+}
+
+.navbar nav ul {
+  list-style: none;
+  display: flex;
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar nav ul li a {
+  text-decoration: none;
+  color: #3b2f2f;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+.navbar nav ul li a:hover {
+  color: #c89b6d;
+}
+
+.login-buttom {
+  width: 100px;   /* ancho fijo */
+  height: 45px;   /* alto fijo */
+  font-size: 15px; /* texto más grande */
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #c89b6d, #8b5e3c);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.body{
+    font-family:'Poppins', sans-serif;
+    color: #3b2f2f;
+    background: linear-gradient(0deg,#f9f6f4 0%,#efe3db 50%,#e4d1c5 100%);    margin:0;
+    padding:0;
+}
+
+
+.hero {
+  height: 80vh;
+  background-image: url("../src/imagenes/coffee cup aesthetic.webp");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   
+  align-items: flex-start;       
+  position: relative;
+  color: #fff;    
+  padding: 0 60px;
+}
+
+.hero::before{
+    content:"";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(0,0,0,.6), rgba(0,0,0,0.2));
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 600px; /* controla el ancho del bloque de texto */
+}
+
+
+.hero h1{
+    font-size: 52px;
+    margin-bottom: 15px;
+    letter-spacing: 0.5px;
+}
+
+.hero p{
+    font-size: 25px;
+    margin-bottom: 25px;
+}
+
+.hero button{
+  width: 200px;       
+  height: 50px;       
+  font-size: 15px; 
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #c89b6d, #8b5e3c);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+
+.hero button:hover{
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+.menu-section{
+  padding: 80px 40px;
+  text-align: center;
+  background:#f4f1ec;
+}
+
+.menu-section h2{
+  font-size: 36px;
+  margin-bottom:40px;
+}
+
+.menu-section {
+  padding: 80px 40px;
+  text-align: center;
+  background:#e4d1c5 100%;
+}
+
+.cards{
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 40px;
+}
+.card{
+  width:280px;
+  background: linear-gradient(0deg,#efe3db 50%,#e4d1c5 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:0 8px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover{
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
+.card img{
+ width: 100%;
+ height:200px;
+ object-fit:cover ;
+}
+.card h3{
+  margin:15px 0 5px;
+}
+
+.card p{
+  color: #777;
+}
+
+.card button{
+  margin:15px;
+  padding:10px 20px;
+  border:none;
+  background: linear-gradient(135deg, #c89d6b, #8b5e3c);
+  color: #fff;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.3s ease, transforma 0.2s ease;
+}
+
+.card button:hover {
+  background: linear-gradient(135deg, #8b5e3c, #c89b6d);
+  transform: translateY(-2px);
+}
+.highlight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 80px;
+  background: linear-gradient(0deg,#f9f6f4 0%,#efe3db 50%,#e4d1c5 100%);
+  gap: 40px;
+  border-radius: 20px;
+}
+
+.highlight-text {
+  max-width: 500px;
+}
+
+.highlight-text h2 {
+  font-size: 42px;
+  margin-bottom: 15px;
+  color: #3b2f2f;
+}
+.highlight-text p {
+  font-size: 20px;
+  color: #555;
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+.highlight-text button {
+  width: 200px;       
+  height: 50px;  
+  font-size: 15px; 
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #c89b6d, #8b5e3c);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+
+.highlight-text button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.highlight-image img {
+  width: 420px;
+  border-radius: 20px;
+  transition: transform 0.3s ease;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.highlight-image img:hover {
+  transform: scale(1.05);
+}
+
+.final-cta {
+  height: 70vh;
+  background-image: url("./imagenes/CAFE_TIENDA2.avif");
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.final-overlay {
+  background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.3));
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-align: center;
+  padding: 40px;
+}
+
+.final-overlay h2 {
+  font-size: 44px;
+  margin-bottom: 20px;
+  letter-spacing: 1 px;
+  
+}
+
+.final-overlay p {
+  font-size: 20px;
+  margin-bottom: 30px;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.final-overlay button {
+  padding: 14px 32px;
+  border-radius: 25px;
+  font-size: 15px;
+  border: none;
+  background: linear-gradient(135deg, #c89b6d, #8b5e3c);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.final-overlay button:hover{
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+
