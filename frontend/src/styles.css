@@ -27,12 +27,7 @@ body {
   margin: 0;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: var(--text-main);
-  background: linear-gradient(
-    0deg,
-    #f9f6f4 0%,
-    #efe3db 50%,
-    #e4d1c5 100%
-  );
+  background: linear-gradient(0deg,#f9f6f4 0%,#efe3db 50%,#e4d1c5 100%);
 }
 /*Hace que width y height incluyan padding y border */
 * {
@@ -1443,7 +1438,7 @@ body {
   flex: 1;             
   justify-content: flex-end;
 
-.topbar-right input {
+.topbar-right-input {
   min-width: 250px;   
   max-width: 400px;  
   border: 1px solid #dbc8c0;
@@ -1464,6 +1459,7 @@ body {
     }
 
 }
+<<<<<<< HEAD
 
 .hero{
   height: 80hv;
@@ -1637,3 +1633,6 @@ body {
   cursor: pointer;
 }
 }
+=======
+}
+>>>>>>> f5eac6d74cc0af974f8c7c8b5f75b9ca82d40dc1

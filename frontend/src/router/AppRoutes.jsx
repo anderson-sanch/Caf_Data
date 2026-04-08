@@ -26,7 +26,7 @@ function AppRoutes() {
       <Route path="/personal" element={<PersonalPage />} />
       <Route path="/personal/nuevo" element={<CrearPersonalPage />} />
       <Route path="/notificaciones" element={<NotificacionesPage />} />
-      <Route path="/landing" element={<LandingPage />} />
+      <Route path="/Landing" element={<LandingPage />} />
       <Route path="/configuracion" element={<ConfiguracionPage />} />
     </Routes>
   );
