@@ -2,9 +2,11 @@ import cafe from "../imagenes/CAFE_MENU..jpg";
 import comida from "../imagenes/COMIDA_MENU.jpg";
 import malteada from "../imagenes/frape.webp";
 import tasa from "../imagenes/tasa de cafe.jpg";
+import { useNavigate } from "react-router-dom";
 
 
 function LandingPage (){
+const navigate = useNavigate();
 
 return(
     <div>
@@ -18,7 +20,13 @@ return(
              <li><a href="#">Contacto</a></li>
            </ul>
          </nav>
-        <button className="login-buttom">Iniciar</button>
+        <button
+          type="button"
+          className="login-buttom"
+          onClick={() => navigate("/login")}
+        >
+          Iniciar
+        </button>
       </header>
 
 
