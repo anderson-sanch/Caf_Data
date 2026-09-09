@@ -28,17 +28,8 @@ export async function login(credentials) {
     };
   }
 
-  try {
-    return await request("/auth/login", {
-      method: "POST",
-      body: credentials,
-    });
-  } catch (error) {
-    // Fallback simple para no bloquear el avance del frontend.
-    return {
-      token: "fallback-token",
-      user: { name: "Admin", role: "admin", email: credentials.email },
-      warning: error.message,
-    };
-  }
+  return request("/auth/login", {
+    method: "POST",
+    body: credentials,
+  });
 }

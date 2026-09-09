@@ -16,12 +16,14 @@ export class SalesService {
     }
 
     return await this.prisma.$transaction(async (tx) => {
-      const client = await tx.clients.findUnique({
-        where: { id: dto.clientId },
-      });
+      if (dto.clientId) {
+        const client = await tx.clients.findUnique({
+          where: { id: dto.clientId },
+        });
 
-      if (!client) {
-        throw new BadRequestException('Cliente no encontrado');
+        if (!client || client.deleted_at) {
+          throw new BadRequestException('Cliente no encontrado');
+        }
       }
 
       let total = 0;
@@ -49,6 +51,14 @@ export class SalesService {
 
       const productMap = new Map(products.map((p) => [p.id, p]));
 
+      const requestedQuantities = new Map<string, number>();
+      for (const item of dto.items) {
+        requestedQuantities.set(
+          item.productId,
+          (requestedQuantities.get(item.productId) ?? 0) + item.quantity,
+        );
+      }
+
       for (const item of dto.items) {
         const product = productMap.get(item.productId);
 
@@ -61,7 +71,8 @@ export class SalesService {
         // validamos stock
         const stock = await this.invenrotyService.getStock(item.productId, tx);
 
-        if (stock < item.quantity) {
+        const requestedQuantity = requestedQuantities.get(item.productId) ?? 0;
+        if (stock < requestedQuantity) {
           throw new BadRequestException(
             `Stock insuficiente para el producto ${product?.name || 'producto'}. Disponible: ${stock}`,
           );
@@ -101,6 +112,7 @@ export class SalesService {
           client_id: dto.clientId,
           total,
           payment_method: dto.paymentMethod,
+          status: 'paid',
         },
       });
 
@@ -177,6 +189,10 @@ export class SalesService {
       });
       if (!sale) {
         throw new BadRequestException('Venta no encontrada');
+      }
+
+      if (sale.status === 'canceled') {
+        throw new BadRequestException('La venta ya fue cancelada');
       }
 
       // devolvemos el inventario

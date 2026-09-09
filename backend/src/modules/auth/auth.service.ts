@@ -24,6 +24,10 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
+    if (!user.is_active || user.deleted_at) {
+      throw new UnauthorizedException('Usuario inactivo');
+    }
+
     // permisos
     const rolePermissions =
       user.roles?.role_permissions.map((rp) => rp.permissions.name) || [];
@@ -42,6 +46,13 @@ export class AuthService {
 
     return {
       access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.roles?.name ?? null,
+        permissions,
+      },
     };
   }
 }

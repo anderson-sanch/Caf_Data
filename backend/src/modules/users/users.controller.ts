@@ -1,11 +1,30 @@
-import { Controller, Post, Body, Param, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  Patch,
+  UseGuards,
+  Get,
+  Req,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UseGuards, Get, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Request } from 'express';
+
+interface AuthenticatedRequest extends Request {
+  user: {
+    sub: string;
+    email: string;
+    role?: string;
+    permissions: string[];
+  };
+}
 
 @Controller('users')
+@UseGuards(AuthGuard('jwt'))
 export class UsersController {
   constructor(private userServices: UsersService) {}
 
@@ -17,7 +36,7 @@ export class UsersController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('me')
-  me(@Req() req) {
+  me(@Req() req: AuthenticatedRequest) {
     return req.user;
   }
 
@@ -25,12 +44,6 @@ export class UsersController {
   @Get()
   findAll() {
     return this.userServices.findAll();
-  }
-
-  // ✅ buscar por email
-  @Get('email/:email')
-  findByEmail(@Param('email') email: string) {
-    return this.userServices.findByEmail(email);
   }
 
   // ✅ buscar por id
@@ -41,12 +54,7 @@ export class UsersController {
 
   // ✅ actualizar
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() dto: UpdateUserDto,
-  ) {
+  update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
     return this.userServices.update(id, dto);
   }
-
-
 }

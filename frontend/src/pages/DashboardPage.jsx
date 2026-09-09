@@ -1,9 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Layout from "../components/layout/Layout";
 import { CardkpiData } from "../components/ui/Cards/CardkpiData";
+import { request } from "../services/apiClient";
 
 function DashboardPage() {
   const [search, setSearch] = useState("");
+  const [summary, setSummary] = useState({
+    salesToday: 0,
+    ordersToday: 0,
+    products: 0,
+    clients: 0,
+    recentSales: [],
+  });
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    request("/dashboard/summary")
+      .then((data) => setSummary(data))
+      .catch((requestError) => setError(requestError.message));
+  }, []);
 
   return (
     <Layout
@@ -15,10 +30,10 @@ function DashboardPage() {
     >
       <section className="inventory-kpi-grid dashboard-kpi-grid">
 
-        <CardkpiData title={"Ventas hoy"} data={20000} price={true} className={"kpi-card"}/>
-        <CardkpiData title={"Ordemes"} data={48} className={"kpi-card"}/>
-        <CardkpiData title={"Productos"} data={182} className={"kpi-card"}/>
-        <CardkpiData title={"Clientes"} data={1412} className={"kpi-card"}/>
+        <CardkpiData title={"Ventas hoy"} data={summary.salesToday} price={true} className={"kpi-card"}/>
+        <CardkpiData title={"Órdenes"} data={summary.ordersToday} className={"kpi-card"}/>
+        <CardkpiData title={"Productos"} data={summary.products} className={"kpi-card"}/>
+        <CardkpiData title={"Clientes"} data={summary.clients} className={"kpi-card"}/>
       </section>
 
       <section className="orders-card">
@@ -39,30 +54,18 @@ function DashboardPage() {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>#001</td>
-              <td>María González</td>
-              <td>$45.000</td>
-              <td><span className="status completed">Completado</span></td>
-              <td>12/03/2026</td>
-              <td>Ver detalles</td>
-            </tr>
-            <tr>
-              <td>#002</td>
-              <td>Carlos López</td>
-              <td>$32.000</td>
-              <td><span className="status completed">Completado</span></td>
-              <td>23/04/2024</td>
-              <td>Ver detalles</td>
-            </tr>
-            <tr>
-              <td>#003</td>
-              <td>Ana Martínez</td>
-              <td>$24.400</td>
-              <td><span className="status completed">Completado</span></td>
-              <td>14/05/2026</td>
-              <td>Ver detalles</td>
-            </tr>
+            {error && <tr><td colSpan="6">{error}</td></tr>}
+            {!error && summary.recentSales.length === 0 && <tr><td colSpan="6">No hay ventas registradas.</td></tr>}
+            {summary.recentSales.map((sale) => (
+              <tr key={sale.id}>
+                <td>{sale.id.slice(0, 8)}</td>
+                <td>{sale.client}</td>
+                <td>${Number(sale.total).toLocaleString("es-CO")}</td>
+                <td><span className={`status ${sale.status === "canceled" ? "soldout" : "completed"}`}>{sale.status}</span></td>
+                <td>{sale.created_at ? new Date(sale.created_at).toLocaleDateString("es-CO") : ""}</td>
+                <td>Registrada</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </section>

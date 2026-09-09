@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/layout/Layout";
+import { request } from "../services/apiClient";
 
 function ClientesPage() {
   const [search, setSearch] = useState("");
@@ -12,10 +13,8 @@ function ClientesPage() {
   useEffect(() => {
     const Clientes = async () => {
       try{
-        const res = await fetch("http://localhost:3000/clients");
-        const data = await res.json();
-
-        setClients(data)
+        const data = await request("/clients");
+        setClients(Array.isArray(data) ? data : []);
       } catch(err){
         setError('Error al obtener clientes')
       } finally{
@@ -26,41 +25,16 @@ function ClientesPage() {
     Clientes()
   }, [])
 
-
-  const clientes = [
-    {
-      nombre: "Herminia",
-      contacto: "her@gmail.com",
-      estado: "Activo",
-      registro: "05/06/2025",
-      tipo: "Frecuente",
-    },
-    {
-      nombre: "Natalia",
-      contacto: "nat@ghg.com",
-      estado: "Inactivo",
-      registro: "06/06/2025",
-      tipo: "VIP",
-    },
-    {
-      nombre: "Pipe",
-      contacto: "pep@fgh.com",
-      estado: "Activo",
-      registro: "20/03/2025",
-      tipo: "Nuevo",
-    },
-  ];
-
   const filteredClientes = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return clientes;
+    if (!term) return clients;
 
-    return clientes.filter(
+    return clients.filter(
       (item) =>
-        item.nombre.toLowerCase().includes(term) ||
-        item.contacto.toLowerCase().includes(term)
+        item.name?.toLowerCase().includes(term) ||
+        item.email?.toLowerCase().includes(term)
     );
-  }, [search]);
+  }, [clients, search]);
 
   return (
     <Layout title="Clientes">
@@ -133,19 +107,20 @@ function ClientesPage() {
           </thead>
 
           <tbody>
-            {loading && <p>Cargando...</p>}
-            {error && <p>{error}</p>}
-            {clients.map((item) => (
+            {loading && <tr><td colSpan="6">Cargando...</td></tr>}
+            {error && <tr><td colSpan="6">{error}</td></tr>}
+            {!loading && !error && filteredClientes.length === 0 && <tr><td colSpan="6">No hay clientes registrados.</td></tr>}
+            {filteredClientes.map((item) => (
               <tr key={item.id}>
                 <td>{item.name}</td>
                 <td>{item.phone}</td>
                 <td>
                   <span
                     className={`status ${
-                      item.deleted_at === "null" ? "soldout" : "completed"
+                      item.deleted_at ? "soldout" : "completed"
                     }`}
                   >
-                    {item.deleted_at === "null" ? 'Inactivo' : 'Activo'}
+                    {item.deleted_at ? 'Inactivo' : 'Activo'}
                   </span>
                 </td>
                 <td>{item.email}</td>

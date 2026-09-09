@@ -95,7 +95,9 @@ export class UsersService {
       throw new BadRequestException('Usuario no encontrado');
     }
 
-    return user;
+    const { password, ...safeUser } = user;
+    void password;
+    return safeUser;
   }
 
   async update(id: string, dto: UpdateUserDto) {
@@ -133,10 +135,15 @@ export class UsersService {
   }
 
   async findAll() {
-    return this.prisma.users.findMany({
+    const users = await this.prisma.users.findMany({
       orderBy: {
         name: 'asc',
       },
+    });
+
+    return users.map(({ password, ...user }) => {
+      void password;
+      return user;
     });
   }
 }

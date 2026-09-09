@@ -1,44 +1,39 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Layout from "../components/layout/Layout";
 import { CardkpiData } from "../components/ui/Cards/CardkpiData";
+import { request } from "../services/apiClient";
+import { useNavigate } from "react-router-dom";
 
 function InventarioPage() {
   const [search, setSearch] = useState("");
+  const [products, setProducts] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  const productos = [
-    {
-      producto: "Café",
-      categoria: "kg",
-      stock: 15,
-      precio: "$20.000",
-      estado: "Disponible",
-    },
-    {
-      producto: "Azúcar",
-      categoria: "kg",
-      stock: 10,
-      precio: "$40.000",
-      estado: "Disponible",
-    },
-    {
-      producto: "Leche",
-      categoria: "ML",
-      stock: 0,
-      precio: "$15.000",
-      estado: "Agotado",
-    },
-  ];
+  useEffect(() => {
+    request("/inventory/stock")
+      .then((data) => setProducts(Array.isArray(data) ? data : []))
+      .catch((requestError) => setError(requestError.message))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filteredProductos = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return productos;
+    if (!term) return products;
 
-    return productos.filter(
+    return products.filter(
       (item) =>
-        item.producto.toLowerCase().includes(term) ||
-        item.categoria.toLowerCase().includes(term)
+        item.name?.toLowerCase().includes(term) ||
+        item.categories?.name?.toLowerCase().includes(term)
     );
-  }, [search]);
+  }, [products, search]);
+
+  const lowStock = products.filter((product) => product.stock <= 5).length;
+  const inventoryValue = products.reduce(
+    (total, product) => total + Number(product.product_prices?.[0]?.price || 0) * product.stock,
+    0,
+  );
 
   return (
     <Layout title="Inventario">
@@ -57,7 +52,7 @@ function InventarioPage() {
           <button type="button" className="toolbar-chip">
             Exportar
           </button>
-          <button type="button" className="toolbar-main">
+          <button type="button" className="toolbar-main" onClick={() => navigate("/inventario/nuevo")}>
             Agregar productos
           </button>
         </div>
@@ -65,15 +60,13 @@ function InventarioPage() {
 
       <section className="inventory-kpi-grid">
 
-        <CardkpiData title={"Total producto"} data={95} className={"kpi-card inventory-kpi-card"} />
-        <CardkpiData title={"Stock bajo"} data={3} className={"kpi-card inventory-kpi-card"} message={"3 productos criticos"} smallClassName={"down"}/>
-        <CardkpiData title={""} data={3} className={"kpi-card inventory-kpi-card"} message={"3 productos criticos"} smallClassName={"down"}/>
+        <CardkpiData title={"Total productos"} data={products.length} className={"kpi-card inventory-kpi-card"} />
+        <CardkpiData title={"Stock bajo"} data={lowStock} className={"kpi-card inventory-kpi-card"} message={`${lowStock} productos con stock bajo`} smallClassName={"down"}/>
 
         <article className="kpi-card inventory-kpi-card">
           <div>
             <p>Valor inventario</p>
-            <h3>$173.000</h3>
-            <small className="up">+11.2%</small>
+            <h3>${inventoryValue.toLocaleString("es-CO")}</h3>
           </div>
         </article>
       </section>
@@ -95,19 +88,22 @@ function InventarioPage() {
             </tr>
           </thead>
           <tbody>
+            {loading && <tr><td colSpan="6">Cargando inventario...</td></tr>}
+            {error && <tr><td colSpan="6">{error}</td></tr>}
+            {!loading && !error && filteredProductos.length === 0 && <tr><td colSpan="6">No hay productos registrados.</td></tr>}
             {filteredProductos.map((item) => (
-              <tr key={item.producto}>
-                <td>{item.producto}</td>
-                <td>{item.categoria}</td>
+              <tr key={item.id}>
+                <td>{item.name}</td>
+                <td>{item.categories?.name || "Sin categoría"}</td>
                 <td>{item.stock}</td>
-                <td>{item.precio}</td>
+                <td>${Number(item.product_prices?.[0]?.price || 0).toLocaleString("es-CO")}</td>
                 <td>
                   <span
                     className={`status ${
-                      item.estado === "Agotado" ? "soldout" : "completed"
+                      item.stock <= 0 ? "soldout" : "completed"
                     }`}
                   >
-                    {item.estado}
+                    {item.stock <= 0 ? "Agotado" : "Disponible"}
                   </span>
                 </td>
                 <td>Ver detalles</td>

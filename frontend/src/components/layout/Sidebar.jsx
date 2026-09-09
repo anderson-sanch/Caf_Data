@@ -1,8 +1,17 @@
 import { NavLink } from "react-router-dom";
 import logo from  "../../imagenes/Logo.png"
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Sidebar() {
+  const navigate = useNavigate();
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("cafdata_auth");
+    navigate("/login");
+  };
+
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -38,6 +47,9 @@ function Sidebar() {
           Configuración
         </NavLink>
       </nav>
+      <button type="button" className="toolbar-chip" onClick={logout}>
+        Cerrar sesión
+      </button>
     </aside>
   );
 }

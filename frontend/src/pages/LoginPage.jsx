@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import fondoLogin from "../imagenes/imagen_Login_new.png";
 import logoEmpresa from "../imagenes/Logo.png";
+import { login } from "../services/authService";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,22 +13,8 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const res = await fetch("http://localhost:3000/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError( data.message)
-        return
-      }
-
-      localStorage.setItem("token", data.access_token);
+      const data = await login({ email, password });
+      localStorage.setItem("token", data.access_token || data.token);
       navigate("/dashboard");
     } catch (err) {
       console.error(err);

@@ -1,4 +1,11 @@
-import { IsArray, IsOptional, IsUUID, ValidateNested, IsInt, Min } from 'class-validator';
+import {
+  IsArray,
+  IsOptional,
+  IsUUID,
+  ValidateNested,
+  IsInt,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { payment_method } from '@prisma/client';
 

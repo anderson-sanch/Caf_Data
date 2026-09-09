@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Navigate, Routes, Route } from "react-router-dom";
 import ClientesPage from "../pages/ClientesPage";
 import CrearClientePage from "../pages/CrearClientePage";
 import DashboardPage from "../pages/DashboardPage";
@@ -11,23 +11,29 @@ import ConfiguracionPage from "../pages/ConfiguracionPage";
 import LoginPage from "../pages/LoginPage";
 import LandingPage from "../pages/LandingPage";
 import CrearPersonalPage from "../pages/CrearPersonalPage"
+import CrearProductoPage from "../pages/CrearProductoPage";
 
 function AppRoutes() {
+  const RequireAuth = ({ children }) =>
+    localStorage.getItem("token") ? children : <Navigate to="/login" replace />;
+
   return (
     <Routes>
-      {/* <Route path="/" element={<LandingPage />} /> */}
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/inventario" element={<InventarioPage />} />
-      <Route path="/clientes" element={<ClientesPage />} />
-      <Route path="/clientes/nuevo" element={<CrearClientePage />} />
-      <Route path="/ventas" element={<VentasPage />} />
-      <Route path="/reportes" element={<ReportesPage />} />
-      <Route path="/personal" element={<PersonalPage />} />
-      <Route path="/personal/nuevo" element={<CrearPersonalPage />} />
-      <Route path="/notificaciones" element={<NotificacionesPage />} />
-      <Route path="/Landing" element={<LandingPage />} />
-      <Route path="/configuracion" element={<ConfiguracionPage />} />
+      <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+      <Route path="/inventario" element={<RequireAuth><InventarioPage /></RequireAuth>} />
+      <Route path="/inventario/nuevo" element={<RequireAuth><CrearProductoPage /></RequireAuth>} />
+      <Route path="/clientes" element={<RequireAuth><ClientesPage /></RequireAuth>} />
+      <Route path="/clientes/nuevo" element={<RequireAuth><CrearClientePage /></RequireAuth>} />
+      <Route path="/ventas" element={<RequireAuth><VentasPage /></RequireAuth>} />
+      <Route path="/reportes" element={<RequireAuth><ReportesPage /></RequireAuth>} />
+      <Route path="/personal" element={<RequireAuth><PersonalPage /></RequireAuth>} />
+      <Route path="/personal/nuevo" element={<RequireAuth><CrearPersonalPage /></RequireAuth>} />
+      <Route path="/notificaciones" element={<RequireAuth><NotificacionesPage /></RequireAuth>} />
+      <Route path="/landing" element={<LandingPage />} />
+      <Route path="/configuracion" element={<RequireAuth><ConfiguracionPage /></RequireAuth>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

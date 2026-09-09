@@ -3,17 +3,18 @@ import { PrismaService } from 'src/database/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
-//   categories
+  //   categories
 
   async createCategory(dto: CreateCategoryDto) {
     const { name } = dto;
 
-    let categoryCapitalized =
+    const categoryCapitalized =
       name.charAt(0).toUpperCase() + name.slice(1).toLocaleLowerCase();
 
     const existingCategory = await this.prisma.categories.findFirst({
@@ -41,7 +42,7 @@ export class ProductsService {
     });
   }
 
-//   Products
+  //   Products
 
   async findAllProducts() {
     return this.prisma.products.findMany({
@@ -76,6 +77,17 @@ export class ProductsService {
             valid_from: new Date(),
           },
         },
+        ...(dto.initialStock
+          ? {
+              inventory_movements: {
+                create: {
+                  type: 'IN',
+                  quantity: dto.initialStock,
+                  reason: 'Inventario inicial',
+                },
+              },
+            }
+          : {}),
       },
       include: {
         categories: true,
@@ -85,8 +97,8 @@ export class ProductsService {
   }
 
   async findOne(id: string) {
-    return this.prisma.products.findUnique({
-      where: { id },
+    return this.prisma.products.findFirst({
+      where: { id, deleted_at: null },
       include: {
         categories: true,
         product_prices: true,
@@ -95,7 +107,7 @@ export class ProductsService {
   }
 
   async update(id: string, dto: UpdateProductDto) {
-    const data: any = {};
+    const data: Prisma.productsUncheckedUpdateInput = {};
 
     if (dto.name !== undefined) data.name = dto.name;
     if (dto.description !== undefined) data.description = dto.description;

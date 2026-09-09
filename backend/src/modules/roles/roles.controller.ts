@@ -1,9 +1,10 @@
-import { Body, Controller, Post, Get, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Post, Get, Param, UseGuards } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/CreateRole.dto';
-import { permission } from 'process';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('roles')
+@UseGuards(AuthGuard('jwt'))
 export class RolesController {
   constructor(private rolesService: RolesService) {}
   // creacion
@@ -23,7 +24,7 @@ export class RolesController {
     @Body('permissionIds') permissionIds: string[],
   ) {
     console.log(permissionIds);
-    
+
     return this.rolesService.addPermissions(roleId, permissionIds);
   }
 }

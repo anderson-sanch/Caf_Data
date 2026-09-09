@@ -46,12 +46,14 @@ export class RolesService {
       skipDuplicates: true,
     });
 
-    if(result.count === 0) {
-        throw new BadRequestException('No se pudieron agregar los permisos al rol');
+    if (result.count === 0) {
+      throw new BadRequestException(
+        'No se pudieron agregar los permisos al rol',
+      );
     }
 
     return {
-        message: 'Permisos agregados al rol exitosamente',
-    }
+      message: 'Permisos agregados al rol exitosamente',
+    };
   }
 }

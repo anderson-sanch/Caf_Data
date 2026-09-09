@@ -1437,6 +1437,7 @@ body {
   gap: 14px;
   flex: 1;             
   justify-content: flex-end;
+}
 
 .topbar-right-input {
   min-width: 250px;   
@@ -1459,10 +1460,9 @@ body {
     }
 
 }
-<<<<<<< HEAD
 
 .hero{
-  height: 80hv;
+  height: 80vh;
   background-image: url("../src/imagenes/coffee\ cup\ aesthetic.webp");
   background-size: cover;
   display: flex;
@@ -1632,7 +1632,3 @@ body {
   color: white;
   cursor: pointer;
 }
-}
-=======
-}
->>>>>>> f5eac6d74cc0af974f8c7c8b5f75b9ca82d40dc1

@@ -13,7 +13,7 @@ async function bootstrap() {
 
       exceptionFactory: (errors) => {
         console.log('validation', errors);
-        
+
         const messages = errors.flatMap((err) =>
           err.constraints ? Object.values(err.constraints) : [],
         );
@@ -23,11 +23,19 @@ async function bootstrap() {
     }),
   );
 
+  const allowedOrigins = process.env.CORS_ORIGIN?.split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  if (process.env.NODE_ENV === 'production' && !allowedOrigins?.length) {
+    throw new Error('CORS_ORIGIN is required in production');
+  }
+
   app.enableCors({
-    origin: true,
+    origin: allowedOrigins?.length ? allowedOrigins : true,
     credentials: true,
   });
 
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+void bootstrap();
