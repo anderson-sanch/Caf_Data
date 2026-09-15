@@ -4,6 +4,12 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  const frontendOrigin = process.env.FRONTEND_ORIGIN;
+
+  if (!frontendOrigin) {
+    throw new Error('FRONTEND_ORIGIN is not defined');
+  }
+
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(
     new ValidationPipe({
@@ -24,7 +30,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: true,
+    origin: frontendOrigin,
     credentials: true,
   });
 

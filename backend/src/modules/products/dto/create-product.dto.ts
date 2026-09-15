@@ -1,11 +1,13 @@
-import { IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator'
+import { IsNumber, IsOptional, IsString, IsUUID, Length, MaxLength, Min } from 'class-validator'
 
 export class CreateProductDto {
     @IsString()
+    @Length(2, 150)
     name!:string
 
     @IsOptional()
     @IsString()
+    @MaxLength(1000)
     description?:string
 
     @IsOptional()
@@ -13,6 +15,6 @@ export class CreateProductDto {
     categoryId?:string
 
     @IsNumber()
-    @Min(0)
+    @Min(0.01)
     price!:number
 }

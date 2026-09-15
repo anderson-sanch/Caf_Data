@@ -1,8 +1,9 @@
-import { IsArray, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsBoolean, IsOptional, IsString, IsUUID, Length } from 'class-validator';
 
 export class UpdateUserDto {
     @IsOptional()
     @IsString()
+    @Length(2, 100)
     name?:string
 
     @IsOptional()
@@ -10,6 +11,6 @@ export class UpdateUserDto {
     roleId?:string
 
     @IsOptional()
-    @IsArray()
-    permissionsIds?: string[]
+    @IsBoolean()
+    isActive?: boolean
 }

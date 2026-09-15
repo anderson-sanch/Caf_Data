@@ -10,11 +10,15 @@ export class ClientsService {
     // crear
     async create(dto: CreateClientDto){
         const { documentType, ...rest } = dto;
+        const data = this.normalizeClientData(rest);
 
-        if(rest.document){
+        this.validateDocumentPair(data.document, documentType);
+
+        if(data.document && documentType){
             const existingClient = await this.prisma.clients.findFirst({
                 where:{
-                    document: rest.document,
+                    document: data.document,
+                    document_type: documentType,
                 },
             });
 
@@ -25,7 +29,7 @@ export class ClientsService {
 
         return this.prisma.clients.create({
             data: {
-                ...rest,
+                ...data,
                 document_type: documentType,
             },
         });
@@ -57,14 +61,23 @@ export class ClientsService {
 
     // actualizar
     async update(id: string, dto: UpdateClientDto){
-        await this.findOne(id) // valida existencia
+        const currentClient = await this.findOne(id);
 
         const { documentType, ...rest } = dto;
+        const data = this.normalizeClientData(rest);
+        const finalDocument = Object.prototype.hasOwnProperty.call(data, 'document')
+            ? data.document
+            : currentClient.document;
+        const finalDocumentType =
+            documentType !== undefined ? documentType : currentClient.document_type;
 
-        if(rest.document){
+        this.validateDocumentPair(finalDocument, finalDocumentType);
+
+        if(finalDocument && finalDocumentType){
             const existingClient = await this.prisma.clients.findFirst({
                 where: {
-                    document: rest.document,
+                    document: finalDocument,
+                    document_type: finalDocumentType,
                 }
             })
 
@@ -76,7 +89,7 @@ export class ClientsService {
         return this.prisma.clients.update({
             where: { id },
             data: {
-                ...rest,
+                ...data,
                 ...(documentType !== undefined ? { document_type: documentType } : {}),
                 updated_at: new Date()
             }
@@ -88,11 +101,33 @@ export class ClientsService {
     async remove(id: string){
         await this.findOne(id);
 
-        return this.prisma.clients.update({
+        const client = await this.prisma.clients.update({
             where: { id },
             data: {
                 deleted_at: new Date()
             }
         });
+
+        return { id: client.id, message: 'Cliente eliminado correctamente' };
+    }
+
+    private validateDocumentPair(
+        document?: string | null,
+        documentType?: string | null,
+    ) {
+        if (Boolean(document) !== Boolean(documentType)) {
+            throw new BadRequestException(
+                'El tipo y el número de documento deben enviarse juntos',
+            );
+        }
+    }
+
+    private normalizeClientData<T extends Record<string, unknown>>(data: T): T {
+        return Object.fromEntries(
+            Object.entries(data).map(([key, value]) => [
+                key,
+                typeof value === 'string' ? value.trim() : value,
+            ]),
+        ) as T;
     }
 }

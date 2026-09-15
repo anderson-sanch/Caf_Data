@@ -8,7 +8,6 @@ function Layout({
   searchPlaceholder = "",
   searchValue = "",
   onSearchChange,
-  showMenu = false,
 }) {
   return (
     <main className="dashboard-page">
@@ -22,7 +21,6 @@ function Layout({
             searchPlaceholder={searchPlaceholder}
             searchValue={searchValue}
             onSearchChange={onSearchChange}
-            showMenu={showMenu}
           />
 
           {children}

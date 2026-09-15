@@ -16,23 +16,23 @@ export class CreateClientDto {
 
   @IsOptional()
   @IsEmail()
-  email?: string;
+  email?: string | null;
 
   @IsOptional()
   @IsString()
   @Length(5, 20)
-  phone?: string;
+  phone?: string | null;
 
   @IsOptional()
   @IsString()
   @Length(5, 50)
-  document?: string;
+  document?: string | null;
 
   @IsOptional()
   @IsString()
-  address?: string;
+  address?: string | null;
 
   @IsOptional()
   @IsEnum(DocumentType)
-  documentType?: DocumentType;
+  documentType?: DocumentType | null;
 }

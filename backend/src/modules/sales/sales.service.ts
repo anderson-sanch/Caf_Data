@@ -1,200 +1,241 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateSaleDto } from './dto/Create-sale.dto';
 import { InventoryService } from '../inventory/inventory.service';
+
+type SaleWithRelations = {
+  id: string;
+  total: { toString(): string };
+  payment_method: string | null;
+  status: string | null;
+  created_at: Date | null;
+  clients: { id: string; name: string | null; email: string | null } | null;
+  users: { id: string; name: string | null; email: string } | null;
+  sale_items: Array<{
+    id: string;
+    product_id: string;
+    quantity: number;
+    price: { toString(): string } | null;
+    subtotal: { toString(): string } | null;
+    products: { id: string; name: string | null };
+  }>;
+};
 
 @Injectable()
 export class SalesService {
   constructor(
     private prisma: PrismaService,
-    private invenrotyService: InventoryService,
+    private inventoryService: InventoryService,
   ) {}
 
-  async create(dto: CreateSaleDto) {
-    if (!dto.items || dto.items.length === 0) {
-      throw new BadRequestException('La venta debe tener al menos un item');
+  async create(dto: CreateSaleDto, userId: string) {
+    const aggregatedItems = new Map<string, number>();
+    for (const item of dto.items) {
+      aggregatedItems.set(
+        item.productId,
+        (aggregatedItems.get(item.productId) ?? 0) + item.quantity,
+      );
     }
+    const productIds = [...aggregatedItems.keys()].sort();
 
-    return await this.prisma.$transaction(async (tx) => {
-      const client = await tx.clients.findUnique({
-        where: { id: dto.clientId },
+    return this.prisma.$transaction(async (transaction) => {
+      const client = await transaction.clients.findFirst({
+        where: { id: dto.clientId, deleted_at: null },
       });
-
       if (!client) {
-        throw new BadRequestException('Cliente no encontrado');
+        throw new NotFoundException('Cliente no encontrado o eliminado');
       }
 
-      let total = 0;
+      await this.lockProducts(transaction, productIds);
 
-      const itemsProcessed: {
+      const products = await transaction.products.findMany({
+        where: { id: { in: productIds }, deleted_at: null },
+        include: {
+          product_prices: {
+            where: { valid_to: null },
+            orderBy: { valid_from: 'desc' },
+            take: 1,
+          },
+        },
+      });
+      if (products.length !== productIds.length) {
+        throw new NotFoundException(
+          'Uno o más productos no existen o fueron eliminados',
+        );
+      }
+
+      const productMap = new Map(products.map((product) => [product.id, product]));
+      const processedItems: Array<{
         product_id: string;
         quantity: number;
         price: number;
         subtotal: number;
-      }[] = [];
+      }> = [];
+      let total = 0;
 
-      const productIds = dto.items.map((item) => item.productId);
-
-      const products = await tx.products.findMany({
-        where: {
-          id: {
-            in: productIds,
-          },
-        },
-        select: {
-          id: true,
-          name: true,
-        },
-      });
-
-      const productMap = new Map(products.map((p) => [p.id, p]));
-
-      for (const item of dto.items) {
-        const product = productMap.get(item.productId);
-
-        if (!product) {
+      for (const productId of productIds) {
+        const product = productMap.get(productId);
+        const quantity = aggregatedItems.get(productId) ?? 0;
+        const priceRecord = product?.product_prices[0];
+        if (!product || !priceRecord) {
           throw new BadRequestException(
-            `Producto con ID ${item.productId} no encontrado`,
+            `El producto ${product?.name ?? productId} no tiene precio vigente`,
           );
         }
 
-        // validamos stock
-        const stock = await this.invenrotyService.getStock(item.productId, tx);
-
-        if (stock < item.quantity) {
-          throw new BadRequestException(
-            `Stock insuficiente para el producto ${product?.name || 'producto'}. Disponible: ${stock}`,
+        const stock = await this.inventoryService.getStock(
+          productId,
+          transaction,
+        );
+        if (stock < quantity) {
+          throw new ConflictException(
+            `Stock insuficiente para ${product.name ?? 'el producto'}. Disponible: ${stock}`,
           );
-        }
-
-        // 🔹 1. Obtener precio actual
-        const priceRecord = await tx.product_prices.findFirst({
-          where: {
-            product_id: item.productId,
-            valid_to: null,
-          },
-          orderBy: {
-            valid_from: 'desc',
-          },
-        });
-
-        if (!priceRecord) {
-          throw new BadRequestException('Producto sin precio');
         }
 
         const price = Number(priceRecord.price);
-        const subtotal = price * item.quantity;
-
-        total += subtotal;
-
-        itemsProcessed.push({
-          product_id: item.productId,
-          quantity: item.quantity,
-          price,
-          subtotal,
-        });
+        const subtotal = Number((price * quantity).toFixed(2));
+        total = Number((total + subtotal).toFixed(2));
+        processedItems.push({ product_id: productId, quantity, price, subtotal });
       }
 
-      // 🔥 2. Crear venta
-      const sale = await tx.sales.create({
+      const sale = await transaction.sales.create({
         data: {
           client_id: dto.clientId,
+          user_id: userId,
           total,
           payment_method: dto.paymentMethod,
+          status: 'paid',
         },
       });
 
-      // 🔥 3. Crear items + inventario
-      for (const item of itemsProcessed) {
-        // detalle
-        await tx.sale_items.create({
-          data: {
-            sale_id: sale.id,
-            ...item,
-          },
-        });
-
-        // inventario (salida)
-        await tx.inventory_movements.create({
-          data: {
-            product_id: item.product_id,
-            type: 'OUT',
-            quantity: item.quantity,
-            reason: 'Venta',
-          },
-        });
+      await transaction.sale_items.createMany({
+        data: processedItems.map((item) => ({ sale_id: sale.id, ...item })),
+      });
+      for (const item of processedItems) {
+        await this.inventoryService.registerMovement(
+          item.product_id,
+          'OUT',
+          item.quantity,
+          `Venta ${sale.id}`,
+          userId,
+          transaction,
+        );
       }
 
-      return sale;
+      return this.findOneInDatabase(transaction, sale.id);
     });
   }
 
   async findAll() {
-    return await this.prisma.sales.findMany({
-      include: {
-        clients: true,
-        sale_items: {
-          include: {
-            products: true,
-          },
-        },
-      },
-      orderBy: {
-        created_at: 'desc',
-      },
+    const sales = await this.prisma.sales.findMany({
+      include: this.saleRelations,
+      orderBy: { created_at: 'desc' },
     });
+    return sales.map((sale) => this.toSaleResponse(sale));
   }
 
   async findOne(id: string) {
-    console.log(id);
-
-    const sale = await this.prisma.sales.findUnique({
-      where: { id },
-      include: {
-        clients: true,
-        sale_items: {
-          include: {
-            products: true,
-          },
-        },
-      },
-    });
-
-    if (!sale) {
-      throw new BadRequestException('Venta no encontrada');
-    }
-
-    return sale;
+    return this.findOneInDatabase(this.prisma, id);
   }
 
-  async cancel(id: string) {
-    return this.prisma.$transaction(async (tx) => {
-      const sale = await tx.sales.findUnique({
-        where: { id },
-        include: {
-          sale_items: true,
-        },
-      });
-      if (!sale) {
-        throw new BadRequestException('Venta no encontrada');
+  async cancel(id: string, userId: string) {
+    return this.prisma.$transaction(async (transaction) => {
+      const lockedSale = await transaction.$queryRaw<Array<{ id: string }>>(
+        Prisma.sql`SELECT id FROM sales WHERE id = CAST(${id} AS uuid) FOR UPDATE`,
+      );
+      if (lockedSale.length === 0) {
+        throw new NotFoundException('Venta no encontrada');
       }
 
-      // devolvemos el inventario
-      for (const item of sale.sale_items) {
-        await tx.inventory_movements.create({
-          data: {
-            product_id: item.product_id,
-            type: 'IN',
-            quantity: item.quantity,
-            reason: 'Cancelacion de Venta',
-          },
-        });
+      const sale = await transaction.sales.findUnique({
+        where: { id },
+        include: this.saleRelations,
+      });
+      if (!sale) {
+        throw new NotFoundException('Venta no encontrada');
       }
-      // cambiamos estado de la venta
-      return tx.sales.update({
+      if (sale.status === 'canceled') {
+        throw new ConflictException('La venta ya está cancelada');
+      }
+
+      for (const item of sale.sale_items) {
+        await this.inventoryService.registerMovement(
+          item.product_id,
+          'IN',
+          item.quantity,
+          `Cancelación venta ${sale.id}`,
+          userId,
+          transaction,
+          true,
+        );
+      }
+      await transaction.sales.update({
         where: { id },
         data: { status: 'canceled' },
       });
+
+      return this.findOneInDatabase(transaction, id);
     });
+  }
+
+  private readonly saleRelations = {
+    clients: { select: { id: true, name: true, email: true } },
+    users: { select: { id: true, name: true, email: true } },
+    sale_items: {
+      include: { products: { select: { id: true, name: true } } },
+      orderBy: { id: 'asc' as const },
+    },
+  };
+
+  private async findOneInDatabase(
+    database: Pick<PrismaService, 'sales'>,
+    id: string,
+  ) {
+    const sale = await database.sales.findUnique({
+      where: { id },
+      include: this.saleRelations,
+    });
+    if (!sale) {
+      throw new NotFoundException('Venta no encontrada');
+    }
+    return this.toSaleResponse(sale);
+  }
+
+  private async lockProducts(
+    transaction: Prisma.TransactionClient,
+    productIds: string[],
+  ) {
+    for (const productId of productIds) {
+      await transaction.$queryRaw(
+        Prisma.sql`SELECT pg_advisory_xact_lock(hashtextextended(CAST(${productId} AS text), 0)) IS NULL AS locked`,
+      );
+    }
+  }
+
+  private toSaleResponse(sale: SaleWithRelations) {
+    return {
+      id: sale.id,
+      status: sale.status,
+      paymentMethod: sale.payment_method,
+      total: Number(sale.total.toString()),
+      createdAt: sale.created_at,
+      client: sale.clients,
+      user: sale.users,
+      items: sale.sale_items.map((item) => ({
+        id: item.id,
+        productId: item.product_id,
+        productName: item.products.name,
+        quantity: item.quantity,
+        unitPrice: item.price ? Number(item.price.toString()) : null,
+        subtotal: item.subtotal ? Number(item.subtotal.toString()) : null,
+      })),
+    };
   }
 }

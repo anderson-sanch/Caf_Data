@@ -1,8 +1,10 @@
 import { NavLink } from "react-router-dom";
 import logo from  "../../imagenes/Logo.png"
 import { Link } from "react-router-dom";
+import { getSessionRole } from "../../services/session";
 
 function Sidebar() {
+  const isAdministrator = getSessionRole() === "Administrador";
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -16,27 +18,20 @@ function Sidebar() {
         <NavLink to="/dashboard" className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}>
           Dashboard
         </NavLink>
+        <NavLink to="/clientes" className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}>
+          Clientes
+        </NavLink>
         <NavLink to="/inventario" className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}>
           Inventario
         </NavLink>
         <NavLink to="/ventas" className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}>
           Ventas
         </NavLink>
-        <NavLink to="/clientes" className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}>
-          Clientes
-        </NavLink>
-        <NavLink to="/reportes" className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}>
-          Reportes
-        </NavLink>
-        <NavLink to="/personal" className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}>
-          Personal
-        </NavLink>
-        <NavLink to="/notificaciones" className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}>
-          Notificaciones
-        </NavLink>
-        <NavLink to="/configuracion" className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}>
-          Configuración
-        </NavLink>
+        {isAdministrator && (
+          <NavLink to="/personal" className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}>
+            Personal
+          </NavLink>
+        )}
       </nav>
     </aside>
   );

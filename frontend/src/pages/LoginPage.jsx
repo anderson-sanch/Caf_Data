@@ -2,32 +2,19 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import fondoLogin from "../imagenes/imagen_Login_new.png";
 import logoEmpresa from "../imagenes/Logo.png";
+import { login } from "../services/authService";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleLogin = async () => {
-    setError(null);
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setError("");
 
     try {
-      const res = await fetch("http://localhost:3000/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError( data.message)
-        return
-      }
-
-      localStorage.setItem("token", data.access_token);
+      await login({ email, password });
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
@@ -55,7 +42,7 @@ export default function LoginPage() {
             Accede a tu cuenta y continúa tu experiencia.
           </p>
 
-          <form className="login-form">
+          <form className="login-form" onSubmit={handleLogin}>
             <input
               className="login-input"
               type="email"
@@ -82,9 +69,8 @@ export default function LoginPage() {
             </button>
 
             <button
-              type="button"
+              type="submit"
               className="login-submit"
-              onClick={handleLogin}
             >
               Entrar
             </button>

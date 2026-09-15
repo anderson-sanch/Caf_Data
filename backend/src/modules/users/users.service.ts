@@ -1,142 +1,201 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 
+type UserForResponse = {
+  id: string;
+  name: string | null;
+  email: string;
+  is_active: boolean | null;
+  created_at: Date | null;
+  roles: { id: string; name: string } | null;
+};
+
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async findByEmail(email: string) {
-    return await this.prisma.users.findUnique({
-      where: {
-        email: email,
-      },
+  async findForAuthentication(email: string) {
+    return this.prisma.users.findUnique({
+      where: { email },
       include: {
         roles: {
           include: {
-            role_permissions: {
-              include: {
-                permissions: true,
-              },
-            },
+            role_permissions: { include: { permissions: true } },
           },
         },
-        user_permissions: {
-          include: {
-            permissions: true,
-          },
-        },
+        user_permissions: { include: { permissions: true } },
       },
     });
+  }
+
+  async findActiveSessionUser(id: string) {
+    const user = await this.prisma.users.findFirst({
+      where: { id, is_active: true, deleted_at: null },
+      include: {
+        roles: {
+          include: {
+            role_permissions: { include: { permissions: true } },
+          },
+        },
+        user_permissions: { include: { permissions: true } },
+      },
+    });
+    if (!user) return null;
+
+    const rolePermissions =
+      user.roles?.role_permissions.map((item) => item.permissions.name) ?? [];
+    const userPermissions = user.user_permissions.map(
+      (item) => item.permissions.name,
+    );
+
+    return {
+      ...this.toUserResponse(user),
+      role: user.roles?.name,
+      permissions: [...new Set([...rolePermissions, ...userPermissions])],
+    };
+  }
+
+  toUserResponse(user: UserForResponse) {
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      isActive: Boolean(user.is_active),
+      role: user.roles
+        ? { id: user.roles.id, name: user.roles.name }
+        : null,
+      createdAt: user.created_at,
+    };
   }
 
   async create(dto: CreateUserDto) {
-    // 🔹 validar email único
+    const normalizedEmail = dto.email.trim().toLowerCase();
+    const role = await this.prisma.roles.findUnique({
+      where: { id: dto.roleId },
+    });
+    if (!role) throw new NotFoundException('Rol no encontrado');
+
     const existing = await this.prisma.users.findUnique({
-      where: { email: dto.email },
+      where: { email: normalizedEmail },
     });
+    if (existing) throw new ConflictException('El email ya existe');
 
-    if (existing) {
-      throw new BadRequestException('El email ya existe');
-    }
-
-    // 🔹 hash password
-    const hashed = await bcrypt.hash(dto.password, 10);
-
-    // 🔹 crear usuario (SOLO rol)
-    const user = await this.prisma.users.create({
-      data: {
-        name: dto.name,
-        email: dto.email,
-        password: hashed,
-        role_id: dto.roleId,
-        is_active: true,
-      },
-    });
-
-    // 🔥 overrides (si vienen en el DTO)
-    if (dto.permissionIds && dto.permissionIds.length > 0) {
-      await this.prisma.user_permissions.createMany({
-        data: dto.permissionIds.map((permissionId) => ({
-          user_id: user.id,
-          permission_id: permissionId,
-        })),
-        skipDuplicates: true,
+    const password = await bcrypt.hash(dto.password, 10);
+    try {
+      const user = await this.prisma.users.create({
+        data: {
+          name: dto.name.trim(),
+          email: normalizedEmail,
+          password,
+          role_id: role.id,
+          is_active: true,
+        },
+        include: { roles: true },
       });
+      return this.toUserResponse(user);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('El email ya existe');
+      }
+      throw error;
     }
+  }
 
-    return user;
+  async findByEmail(email: string) {
+    const user = await this.prisma.users.findFirst({
+      where: { email, deleted_at: null },
+      include: { roles: true },
+    });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    return this.toUserResponse(user);
   }
 
   async findOne(id: string) {
-    const user = await this.prisma.users.findUnique({
-      where: { id },
-      include: {
-        roles: {
-          include: {
-            role_permissions: {
-              include: {
-                permissions: true,
-              },
-            },
-          },
-        },
-        user_permissions: {
-          include: {
-            permissions: true,
-          },
-        },
-      },
+    const user = await this.prisma.users.findFirst({
+      where: { id, deleted_at: null },
+      include: { roles: true },
     });
-
-    if (!user) {
-      throw new BadRequestException('Usuario no encontrado');
-    }
-
-    return user;
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    return this.toUserResponse(user);
   }
 
-  async update(id: string, dto: UpdateUserDto) {
-    await this.findOne(id); // valida existencia
+  async update(id: string, dto: UpdateUserDto, requestingUserId: string) {
+    return this.prisma.$transaction(async (transaction) => {
+      await transaction.$queryRaw(
+        Prisma.sql`SELECT pg_advisory_xact_lock(hashtextextended('cafdata-active-administrator', 0)) IS NULL AS locked`,
+      );
 
-    // 🔹 actualizar datos básicos
-    const user = await this.prisma.users.update({
-      where: { id },
-      data: {
-        name: dto.name,
-        role_id: dto.roleId,
-        updated_at: new Date(),
-      },
-    });
-
-    // 🔥 lógica de overrides
-    if (dto.permissionsIds) {
-      // 🧹 eliminar overrides actuales
-      await this.prisma.user_permissions.deleteMany({
-        where: { user_id: id },
+      const target = await transaction.users.findFirst({
+        where: { id, deleted_at: null },
+        include: { roles: true },
       });
+      if (!target) throw new NotFoundException('Usuario no encontrado');
 
-      // ➕ crear nuevos overrides
-      if (dto.permissionsIds.length > 0) {
-        await this.prisma.user_permissions.createMany({
-          data: dto.permissionsIds.map((permissionId) => ({
-            user_id: id,
-            permission_id: permissionId,
-          })),
-        });
+      if (id === requestingUserId && dto.isActive === false) {
+        throw new ConflictException(
+          'No puedes desactivar tu propia cuenta durante esta sesión',
+        );
       }
-    }
 
-    return user;
+      let nextRole = target.roles;
+      if (dto.roleId !== undefined) {
+        nextRole = await transaction.roles.findUnique({
+          where: { id: dto.roleId },
+        });
+        if (!nextRole) throw new NotFoundException('Rol no encontrado');
+      }
+
+      const removesActiveAdministrator =
+        target.roles?.name === 'Administrador' &&
+        target.is_active === true &&
+        (dto.isActive === false || nextRole?.name !== 'Administrador');
+
+      if (removesActiveAdministrator) {
+        const activeAdministrators = await transaction.users.count({
+          where: {
+            is_active: true,
+            deleted_at: null,
+            roles: { name: 'Administrador' },
+          },
+        });
+        if (activeAdministrators <= 1) {
+          throw new ConflictException(
+            'Debe permanecer al menos un Administrador activo',
+          );
+        }
+      }
+
+      const user = await transaction.users.update({
+        where: { id },
+        data: {
+          ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
+          ...(dto.roleId !== undefined ? { role_id: dto.roleId } : {}),
+          ...(dto.isActive !== undefined ? { is_active: dto.isActive } : {}),
+          updated_at: new Date(),
+        },
+        include: { roles: true },
+      });
+      return this.toUserResponse(user);
+    });
   }
 
   async findAll() {
-    return this.prisma.users.findMany({
-      orderBy: {
-        name: 'asc',
-      },
+    const users = await this.prisma.users.findMany({
+      where: { deleted_at: null },
+      orderBy: [{ created_at: 'desc' }, { name: 'asc' }],
+      include: { roles: true },
     });
+    return users.map((user) => this.toUserResponse(user));
   }
 }

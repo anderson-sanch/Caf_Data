@@ -1,11 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import {
-  FaBars,
-  FaCog,
-  FaBell,
   FaRegUserCircle,
-  FaChevronDown,
+  FaSignOutAlt,
 } from "react-icons/fa";
+import { getStoredSession, logout } from "../../services/authService";
 
 function Topbar({
   title,
@@ -13,19 +11,18 @@ function Topbar({
   searchPlaceholder = "",
   searchValue = "",
   onSearchChange,
-  showMenu = false,
 }) {
   const navigate = useNavigate();
+  const session = getStoredSession();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <header className="topbar">
       <div className="topbar-left">
-        {showMenu && (
-          <button type="button" className="icon-button">
-            <FaBars />
-          </button>
-        )}
-
         <h2>{title}</h2>
       </div>
 
@@ -45,28 +42,18 @@ function Topbar({
 />
         )}
 
-        <button
-          className="icon-button"
-          onClick={() => navigate("/configuracion")}
-        >
-          <FaCog />
-        </button>
-
-        <button
-          className="icon-button"
-          onClick={() => navigate("/notificaciones")}
-        >
-          <FaBell />
-          <span className="icon-badge">3</span>
-        </button>
-
-        <button
-          className="admin-chip"
-          onClick={() => navigate("/configuracion")}
-        >
+        <div className="admin-chip" aria-label="Usuario actual">
           <FaRegUserCircle className="admin-avatar" />
-          <span>Admin</span>
-          <FaChevronDown className="chevron-down" />
+          <span>{session?.user?.name || session?.user?.email || "Usuario"}</span>
+        </div>
+        <button
+          type="button"
+          className="icon-button"
+          aria-label="Cerrar sesión"
+          title="Cerrar sesión"
+          onClick={handleLogout}
+        >
+          <FaSignOutAlt />
         </button>
       </div>
     </header>

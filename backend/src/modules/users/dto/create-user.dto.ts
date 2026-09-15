@@ -1,7 +1,8 @@
-import { IsArray, IsEmail, IsOptional, IsString, IsUUID, MinLength } from "class-validator";
+import { IsEmail, IsString, IsUUID, Length, MinLength } from 'class-validator';
 
 export class CreateUserDto {
     @IsString()
+    @Length(2, 100)
     name!:string
     
     @IsEmail()
@@ -13,8 +14,4 @@ export class CreateUserDto {
 
     @IsUUID()
     roleId!: string
-
-    @IsOptional()
-    @IsArray()
-    permissionIds?: string[]
 }

@@ -27,7 +27,7 @@ export class ProductsController {
     // consulta
 
     @Get(':id')
-    findOne(@Param('id') id: string){
+    findOne(@Param('id', new ParseUUIDPipe()) id: string){
         return this.producService.findOne(id)
     }
 
@@ -49,7 +49,7 @@ export class ProductsController {
     // borrado
 
     @Delete(':id')
-    remove(@Param('id') id: string){
+    remove(@Param('id', new ParseUUIDPipe()) id: string){
         return this.producService.remove(id)
     }
 }
